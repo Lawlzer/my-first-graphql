@@ -46,6 +46,7 @@ export class UsersResolver {
 			...user,
 			...input,
 		};
+		``;
 
 		this.users = this.users.map((u) => (u.id === id ? updatedUser : u));
 

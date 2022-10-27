@@ -1,8 +1,8 @@
 import { Field, InputType, ObjectType } from 'type-graphql';
 
-@ObjectType()
+@ObjectType({ description: 'User description here!' })
 export class User {
-	@Field()
+	@Field() // { name: 'Some ID thing' }
 	id!: number;
 	@Field()
 	name!: string;

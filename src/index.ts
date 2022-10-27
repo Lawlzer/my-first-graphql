@@ -1,32 +1,17 @@
+import 'reflect-metadata';
+
 import express from 'express';
 import { graphqlHTTP } from 'express-graphql';
-import { buildSchema } from 'graphql';
+import path from 'path';
+import { buildSchema } from 'type-graphql';
+
+import { UsersResolver } from '~/users/users.resolvers';
 
 const users = [
 	{ id: 1, name: 'John Doe', email: 'johndoe@gmail.com' },
 	{ id: 2, name: 'Jane Doe', email: 'janedoe@gmail.com' },
 	{ id: 3, name: 'Mike Doe', email: 'mikedoe@gmail.com' },
 ];
-
-const schema = buildSchema(`
-    input UserInput {
-        email: String!
-        name: String!
-    }
-    type User {
-        id: Int!
-        name: String!
-        email: String!
-    }
-    type Mutation {
-        createUser(input: UserInput): User
-        updateUser(id: Int!, input: UserInput): User
-    }
-    type Query {
-        getUser(id: String): User
-        getUsers: [User]
-    }
-`);
 
 type User = {
 	id: number;
@@ -63,17 +48,25 @@ const root = {
 	updateUser,
 };
 
-const app = express();
-app.use(
-	'/graphql',
-	graphqlHTTP({
-		schema: schema,
-		rootValue: root,
-		graphiql: true,
-	})
-);
+async function init() {
+	const schema = await buildSchema({
+		resolvers: [UsersResolver], // __dirname + "/resolvers/**/*.{ts,js}" & __dirname + "/resolver/**/*.{ts,js}"
 
-const PORT = 3000;
+		emitSchemaFile: process.env.NODE_ENV !== 'production' && path.resolve(process.cwd(), 'temp', 'schema.gql'),
+	});
+	const app = express();
+	app.use(
+		'/graphql',
+		graphqlHTTP({
+			schema: schema,
+			rootValue: root,
+			graphiql: true,
+		})
+	);
 
-app.listen(PORT);
-console.log(`Running a GraphQL API server at http://localhost:${PORT}/graphql`);
+	const PORT = 3000;
+
+	app.listen(PORT);
+	console.info(`Running a GraphQL API server at localhost:${PORT}/graphql`);
+}
+init();
